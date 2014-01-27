@@ -1,0 +1,102 @@
+
+package Test;
+
+
+import static org.junit.Assert.*;  //import assert methods
+import org.junit.*;      //import JUnit Annotations
+import org.junit.rules.ExpectedException;	//import JUnit Error handling package
+import org.junit.Test;	//import testing package
+import dev.Cell;	//import integrated package
+
+
+public class CellTest {
+ 
+	
+	@Rule
+	public ExpectedException exceptionThrown = ExpectedException.none();
+	
+	
+  /**** Before and After methods ****/
+  @BeforeClass
+  public static void testSetup() {
+    // do something before all tests
+  }
+
+  @AfterClass
+  public static void testCleanup() {
+    // do something after all tests
+  }
+
+  @Before
+  public static void testEachSetup() {
+    // do something before each test
+    System.out.println("Prepping Test....");
+  }
+  
+  @After
+  public static void testEachCleanup() {
+    // do something after each test
+    System.out.println("Test Completed!");
+  }
+
+  
+  /**** Testing Methods ****/
+  
+ //Testing default constructor - value in a cell
+  @Test
+  public void testCellValue() {
+	  Cell cell = new Cell();
+	  assertEquals("Initial cell value", 0.0, cell.getValue());
+  }
+  
+  //Testing default constructor - formula in a cell
+  @Test
+  public void testCellFormula() {
+	  Cell cell = new Cell();
+	  assertEquals("Initial cell formula", "" , cell.getFormula());
+  }
+  
+  //GETTERS AND SETTERS
+  //Test if exiting row exists
+  @Test 
+  public void testGetRow() {
+	  Cell cell = new Cell(A, 2, 3.0);	//Creating a new cell
+	  assertEquals("Getting cell's row", A,cell.getRow());	//Should return an int 
+  }
+  
+  //Test if existing column exists
+  @Test
+  public void testGetCol(){
+	  Cell cell = new Cell(A,3,4.0);	//Creating a new cell
+	  assertEquals("Getting cell's column", 3, cell.getRow());
+  }
+ 
+  @Test
+  public void testGetValue(){
+	  Cell cell  = new Cell(B, 1, 28.0);
+	  assertEquals("Cell set value", 28.0, cell.getValue());
+  }
+  
+  @Test
+  public void testSetValue(){
+	  Cell cell = new Cell(B,2,29.0);
+	  cell.setValue(30.0);
+	  assertEquals("Cell new set value", 30.0, cell.getValue());
+  }
+  
+  @Test
+  //Test if value in cell is a number
+  public void testCellValue(){
+	  Cell cell  = new Cell(B, 3, 2.0);
+	  assertEquals("Cell valid value", 2.0, cell.getValue());
+  }
+  
+  @Test(expected = IllegalArgumentException.class)
+  //Test if value in cell is not a number
+  public void testCellValue(){
+	  Cell cell = new Cell(B, 4, bbbb);
+	  assertEquals("Cell invalid value", bbbb, cell.getValue());
+  }
+
+  
+}
