@@ -1,30 +1,34 @@
-/**
- * 
- */
 package spreadsheet;
 
-import java.awt.Component;
+import java.awt.*;
+
 import javax.swing.table.*;
 import javax.swing.*;
 
 /**
  * @author Justin Dupuis
+ * @version 2014-02-09
  *
- * Used for formatting the cell text
+ * Used for formatting the table
  */
 class SSTableRenderer implements TableCellRenderer {
 	DefaultTableCellRenderer renderer;
+	Font fntHeader;
 
 	/*
 	 * Constructor
 	 */
 	public SSTableRenderer(JTable table) {
-	    renderer = (DefaultTableCellRenderer)
-	    table.getTableHeader().getDefaultRenderer();
-	    renderer.setHorizontalAlignment(JLabel.CENTER);
+	    this.renderer = new DefaultTableCellRenderer();
+	    this.renderer.setHorizontalAlignment(JLabel.CENTER);
+
+		fntHeader = table.getFont();
+		fntHeader = fntHeader.deriveFont(Font.BOLD);
+		
+		this.renderer.setFont(fntHeader);
 	}
 	
-  @Override
+	@Override
     public Component getTableCellRendererComponent(
 	    JTable table, Object value, boolean isSelected,
 	    boolean hasFocus, int row, int column) {

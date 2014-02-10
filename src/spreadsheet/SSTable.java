@@ -1,115 +1,147 @@
-/**
- * 
- */
 package spreadsheet;
 
-import java.util.*;
+import java.awt.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.table.*;
 
 /**
  * @author Justin Dupuis
+ * @version 2014-02-09
  *
  * Represents the GUI table used to render the grid
  * 
  * Included all inhereted constructors just in case...
  */
 public class SSTable extends JTable {
+	final int intCellWidth = 60;
+	final int intCellHeight = 21;
 
+	JViewport vptRowHeaderViewPort;
+	JViewport vptColumnHeaderViewPort;
+	int intCellPadding = 3; //The default padding used on cells and headers
+	
 	JTableHeader header;
 	
-	int minRow;
-	int maxRow;
+	static final int intDefaultRows = 5000;
+	static final int intDefaultColumns = 26*27;//ends at ZZ (27 because the firsts 26 values are single digit)
 	
-	//Default column headers
-	private static final String[] strADefaultColumnHeaders = {
-			"A",
-            "B",
-            "C",
-            "D",
-            "E"};
+	Grid grid;
 	
-	//default row headers
-	private static final int[] objAADefaultRowHeaders =  {
-			1,
-            2,
-            3,
-            4,
-            5};	
+	int intNumRows;
+	int intNumColumns;
 	
-	// default cell values to be displayed initially
-	private static final Object[][] objAADefaultCellValues = {
-		    {0,0,0,0,0},
-		    {0,0,0,0,0},
-		    {0,0,0,0,0},
-		    {0,0,0,0,0},
-		    {0,0,0,0,0},
-			};
+	Border bdrHeaderBorder  = (Border)UIManager.getDefaults().get("TableHeader.cellBorder");
 	
 	/**
-	 * 
+	 * Create a blank spreadsheet with the default number of rows and columns
 	 */
 	public SSTable() {
-		this(objAADefaultCellValues,strADefaultColumnHeaders);
-	}
-
-
-	/**
-	 * @param rowData
-	 * @param columnNames
-	 */
-	public SSTable(Object[][] rowData, Object[] columnNames) {
-		super(rowData,columnNames);
-		
-		this.header = this.getTableHeader();
-		
-		this.setDefaultRenderer(Object.class,new SSTableRenderer(this));
-		header.setDefaultRenderer(new SSHeaderRenderer(this));
+		this(SSTable.intDefaultRows,SSTable.intDefaultColumns);
+		//TODO: Generate Grid object for default table
 	}
 	
 	/**
-	 * @param dm
+	 * Create a spreadsheet based on a grid object
+	 * 
+	 * @param g The grid object to be used when generating the spreadsheet
 	 */
-	public SSTable(TableModel dm) {
-		super(dm);
-		// TODO Auto-generated constructor stub
+	public SSTable(Grid g){
+		//TODO: This generates the table using default values but then should be filled in with the specified grid
+		//---> This is because the grid is a hash and only stores what was entered. The defaults determine what COULD be entered
+		this(SSTable.intDefaultRows,SSTable.intDefaultColumns);
+		this.grid = g;
+		
+		setupSSTable();
+		createRowLabels();
+		this.setFont(new Font("Times", Font.PLAIN, 10));
 	}
-
+	
 	/**
-	 * @param dm
-	 * @param cm
+	 * Create a spreadsheet by specifying the number of rows and columns
+	 * 
+	 * @param intRows The number of rows to create
+	 * @param intColumns The number of columns to create
 	 */
-	public SSTable(TableModel dm, TableColumnModel cm) {
-		super(dm, cm);
-		// TODO Auto-generated constructor stub
+	public SSTable(int intRows, int intColumns){
+		super(intRows,intColumns);
+		
+		this.intNumRows = intRows;
+		this.intNumColumns = intColumns;
+		
+		setupSSTable();
+		createRowLabels();
+		this.setFont(new Font("Times", Font.PLAIN, 10));
 	}
-
+	
 	/**
-	 * @param numRows
-	 * @param numColumns
+	 * Sets up the SS table for use as a spreadsheet
 	 */
-	public SSTable(int numRows, int numColumns) {
-		super(numRows, numColumns);
-		// TODO Auto-generated constructor stub
-	}
+	private void setupSSTable(){
+		
+		//Set up header
+		this.header = this.getTableHeader();
+		header.setDefaultRenderer(new SSTableRenderer(this));
+		
+		//Set up JTable properties
+		this.setCellSelectionEnabled(true);
+		this.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		this.setRowHeight(this.intCellHeight);
+		this.setAutoResizeMode( JTable.AUTO_RESIZE_OFF );
 
+		//Set up cell renderer
+		try {
+		    setDefaultRenderer(Class.forName("java.lang.Object" ), new SSCellRenderer(this.intCellHeight,this.intCellWidth) );
+		} catch (ClassNotFoundException e) {
+		    System.out.println("ERROR: Renderer could not be set");
+		}
+	}
+	
 	/**
-	 * @param rowData
-	 * @param columnNames
+	 * JTables have column headers, but not row headers, so this method
+	 * creates them based on cell properties
 	 */
-	public SSTable(Vector rowData, Vector columnNames) {
-		super(rowData, columnNames);
-		// TODO Auto-generated constructor stub
-	}
+	private void createRowLabels(){
+		// Create row header JPanel
+		JPanel pnlRowHeaders = new JPanel();
+		pnlRowHeaders.setBackground(new Color(255,255,255));
+		
+		FontMetrics metrics = getFontMetrics(this.getFont());
 
+		//set the row label panel size based on the number of row labels required and their dimensions
+		Dimension dimPanelSize = new Dimension(
+							metrics.stringWidth("999")+intCellPadding*2,
+							this.intCellHeight*intNumRows
+				);
+		pnlRowHeaders.setPreferredSize(dimPanelSize);
+
+		// Add labels
+		dimPanelSize.height = this.intCellHeight;
+		
+		for (int i = 1; i <= this.intNumRows; i++) {
+		  JLabel lblRow = new JLabel(Integer.toString(i), SwingConstants.CENTER);
+		  lblRow.setFont(this.getFont());
+		  lblRow.setBorder(BorderFactory.createLineBorder(Color.white));
+		  lblRow.setBounds(0, i*dimPanelSize.height, dimPanelSize.width, dimPanelSize.height);
+		  lblRow.setBackground(new Color(255,255,255));
+		  
+		  pnlRowHeaders.add(lblRow);
+		}
+
+		dimPanelSize.height = this.intCellHeight*this.intNumRows;
+		
+		this.vptRowHeaderViewPort = new JViewport();
+		this.vptRowHeaderViewPort.setViewSize(dimPanelSize);
+		this.vptRowHeaderViewPort.setView(pnlRowHeaders);
+		
+	}
+	
 	/**
-	 * @param dm
-	 * @param cm
-	 * @param sm
+	 * Returns the associated viewport for display
+	 * 
+	 * @return The viewport
 	 */
-	public SSTable(TableModel dm, TableColumnModel cm, ListSelectionModel sm) {
-		super(dm, cm, sm);
-		// TODO Auto-generated constructor stub
+	public JViewport getRowHeader(){
+		return vptRowHeaderViewPort;
 	}
-
 }
